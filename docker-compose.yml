@@ -4,9 +4,38 @@ services:
     asset_mapping:
         build: asset_mapping
         ports:
-            - "28017:28017"
+            - "27017:27017"
 
     asset_mapping_seed:
         build: asset_mapping_seed
         links:
             - asset_mapping
+
+    asset_service:
+        build: ./asset_service
+        container_name: asset_service
+        ports:
+         - "8122:8123"
+        links:
+         - asset_mapping:asset_mapping
+        depends_on:
+         - asset_mapping
+        environment:
+         - MONGODB_DBNAME=user
+         - MONGODB_HOST=asset_mapping
+
+    user-account-service:
+        build: ./user_account_service
+        container_name: user_account_service
+        ports:
+         - "8123:8123"
+        links:
+         - mysql_db:db
+         - asset_service:asset_service
+        depends_on:
+         - mysql_db
+        environment:
+         - DATABASE_HOST=db
+
+    mysql_db:
+        build: ./user_data
